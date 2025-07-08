@@ -9,6 +9,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex flex-col pt-16">
+      {/* Landing */}
       <section className="mt-20 pb-12 space-y-10 md:space-y-20 px-5">
         <div className="container mx-auto px-4 md:px-6 text-center space-y-6">
           <Badge variant="outline" className="bg-green-100 text-green-700">
@@ -62,6 +63,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Features */}
       <section id="features" className="bg-gray-100 py-20">
         <div className="container mx-auto px-4 md:px-6 text-center ">
           <Badge variant="outline" className="bg-green-100 text-green-700">
@@ -93,6 +95,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* How It Works */}
       <section id="how-it-works" className="py-20">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <Badge variant="outline" className="bg-green-100 text-green-700">
@@ -119,6 +122,30 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ───── Call‑to‑Action ───── */}
+      <section className="py-20 gradient">
+        <div className="container mx-auto px-4 md:px-6 text-center space-y-6">
+          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl text-white">
+            Ready to simplify expense sharing?
+          </h2>
+          <p className="mx-auto max-w-[600px] text-green-100 md:text-xl/relaxed">
+            Join thousands of users who have made splitting expenses
+            stress‑free.
+          </p>
+          <Button asChild size="lg" className="bg-green-800 hover:opacity-90">
+            <Link href="/dashboard">
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* ───── Footer ───── */}
+      <footer className="border-t bg-gray-50 py-12 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} Splitzz. All rights reserved.
+      </footer>
     </div>
   );
 }
