@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/convex/_generated/api";
-import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
+import { UseConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,7 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
   // Mutations and queries
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
 
-  const createExpense = useConvexMutation(api.expenses.createExpense);
+  const createExpense = UseConvexMutation(api.expenses.createExpense);
   const categories = getAllCategories();
 
   // Set up form with validation
