@@ -173,3 +173,81 @@ export const getMonthlySpending = query({
     return result;
   },
 });
+
+export const getUserGroups = query({
+  handler: async (ctx) => {
+    const user = await ctx.runQuery(internal.users.getCurrentUser);
+
+    // Get all groups
+    const allGroups = await ctx.db.query("groups").collect();
+
+    // Filter for groups where the user is a member
+    const groups = allGroups.filter((group) =>
+      group.members.some((member) => member.userId === user._id)
+    );
+
+    // Calculate balances for each group
+    const enhancedGroups = await Promise.all(
+      groups.map(async (group) => {
+        // Get all expenses for this group
+        const expenses = await ctx.db
+          .query("expenses")
+          .withIndex("by_group", (q) => q.eq("groupId", group._id))
+          .collect();
+
+        let balance = 0;
+
+        expenses.forEach((expense) => {
+          if (expense.paidByUserId === user._id) {
+            // User paid for others
+            expense.splits.forEach((split) => {
+              if (split.userId !== user._id && !split.paid) {
+                balance += split.amount;
+              }
+            });
+          } else {
+            // User owes someone else
+            const userSplit = expense.splits.find(
+              (split) => split.userId === user._id
+            );
+            if (userSplit && !userSplit.paid) {
+              balance -= userSplit.amount;
+            }
+          }
+        });
+
+        // Apply settlements
+        const settlements = await ctx.db
+          .query("settlements")
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("groupId"), group._id),
+              q.or(
+                q.eq(q.field("paidByUserId"), user._id),
+                q.eq(q.field("receivedByUserId"), user._id)
+              )
+            )
+          )
+          .collect();
+
+        settlements.forEach((settlement) => {
+          if (settlement.paidByUserId === user._id) {
+            // User paid someone
+            balance += settlement.amount;
+          } else {
+            // Someone paid the user
+            balance -= settlement.amount;
+          }
+        });
+
+        return {
+          ...group,
+          id: group._id,
+          balance,
+        };
+      })
+    );
+
+    return enhancedGroups;
+  },
+});
