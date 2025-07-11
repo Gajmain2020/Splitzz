@@ -2,19 +2,27 @@
 
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
-import Link from "next/link";
-import React from "react";
 import { BarLoader } from "react-spinners";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle, Users, CreditCard, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { ExpenseSummary } from "./components/expense-summary";
+import { BalanceSummary } from "./components/balance-summary";
+import { GroupList } from "./components/group-list";
 
-const Dashboard = () => {
+export default function Dashboard() {
   const { data: balances, isLoading: balancesLoading } = useConvexQuery(
     api.dashboard.getUserBalances
   );
 
-  const { data: groups, isLoading: groupLoading } = useConvexQuery(
+  const { data: groups, isLoading: groupsLoading } = useConvexQuery(
     api.dashboard.getUserGroups
   );
 
@@ -27,30 +35,29 @@ const Dashboard = () => {
 
   const isLoading =
     balancesLoading ||
-    groupLoading ||
+    groupsLoading ||
     totalSpentLoading ||
     monthlySpendingLoading;
 
   return (
-    <div>
+    <div className="container mx-auto py-6 space-y-6">
       {isLoading ? (
-        <div className="w-full py-12 flex justify-center ">
-          <BarLoader width="100%" color="#36d7b7" />
+        <div className="w-full py-12 flex justify-center">
+          <BarLoader width={"100%"} color="#36d7b7" />
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex  justify-between flex-col sm:flex-row sm:items-center gap-4">
             <h1 className="text-5xl gradient-title">Dashboard</h1>
-
             <Button asChild>
               <Link href="/expenses/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Expense
+                Add expense
               </Link>
             </Button>
           </div>
 
-          {/* Cards */}
+          {/* Balance overview cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
@@ -59,17 +66,17 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div>
-                  {balances.totalBalance > 0 ? (
+                <div className="text-2xl font-bold">
+                  {balances?.totalBalance > 0 ? (
                     <span className="text-green-600">
-                      +₹{balances?.totalBalance.toFixed(2)}
+                      +₹ {balances?.totalBalance.toFixed(2)}
                     </span>
                   ) : balances?.totalBalance < 0 ? (
                     <span className="text-red-600">
-                      -₹{Math.abs(balances?.totalBalance).toFixed(2)}
+                      -₹ {Math.abs(balances?.totalBalance).toFixed(2)}
                     </span>
                   ) : (
-                    <span>₹0.00</span>
+                    <span>₹ 0.00</span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -90,7 +97,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  ${balances?.youAreOwed.toFixed(2)}
+                  ₹ {balances?.youAreOwed.toFixed(2)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   From {balances?.oweDetails?.youAreOwedBy?.length || 0} people
@@ -108,7 +115,7 @@ const Dashboard = () => {
                 {balances?.oweDetails?.youOwe?.length > 0 ? (
                   <>
                     <div className="text-2xl font-bold text-red-600">
-                      ${balances?.youOwe.toFixed(2)}
+                      ₹ {balances?.youOwe.toFixed(2)}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       To {balances?.oweDetails?.youOwe?.length || 0} people
@@ -116,7 +123,7 @@ const Dashboard = () => {
                   </>
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">$0.00</div>
+                    <div className="text-2xl font-bold">₹ 0.00</div>
                     <p className="text-xs text-muted-foreground mt-1">
                       You don't owe anyone
                     </p>
@@ -125,10 +132,67 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Main dashboard content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Expense summary */}
+              <ExpenseSummary
+                monthlySpending={monthlySpending}
+                totalSpent={totalSpent}
+              />
+            </div>
+
+            {/* Right column */}
+            <div className="space-y-6">
+              {/* Balance details */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Balance Details</CardTitle>
+                    <Button variant="link" asChild className="p-0">
+                      <Link href="/contacts">
+                        View all
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <BalanceSummary balances={balances} />
+                </CardContent>
+              </Card>
+
+              {/* Groups */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Your Groups</CardTitle>
+                    <Button variant="link" asChild className="p-0">
+                      <Link href="/contacts">
+                        View all
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <GroupList groups={groups} />
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link href="/contacts?createGroup=true">
+                      <Users className="mr-2 h-4 w-4" />
+                      Create new group
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
         </>
       )}
     </div>
   );
-};
-
-export default Dashboard;
+}
