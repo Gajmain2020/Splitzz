@@ -88,7 +88,7 @@ export const getUserBalances = query({
   },
 });
 
-export const getTotalSpend = query({
+export const getTotalSpent = query({
   handler: async (ctx) => {
     const user = await ctx.runQuery(internal.users.getCurrentUser);
 
@@ -97,12 +97,13 @@ export const getTotalSpend = query({
 
     const expenses = await ctx.db
       .query("expenses")
-      .withIndex("by_date", (q) => q.gte("date", startOfYear));
+      .withIndex("by_date", (q) => q.gte("date", startOfYear))
+      .collect();
 
     const userExpense = expenses.filter(
       (e) =>
         e.paidByUserId === user._id ||
-        e.splits.some((sp) => sp.userId === user._id)
+        e.splits?.some((sp) => sp.userId === user._id)
     );
 
     let totalSpent = 0;
@@ -134,7 +135,7 @@ export const getMonthlySpending = query({
     const userExpense = expenses.filter(
       (e) =>
         e.paidByUserId === user._id ||
-        e.splits.some((sp) => sp.userId === user._id)
+        e.splits?.some((sp) => sp.userId === user._id)
     );
 
     const monthlyTotal = {};
